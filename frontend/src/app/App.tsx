@@ -17,7 +17,10 @@ export interface User {
   studentId?: string;
   department?: string;
   roomNumber?: string;
+  phone?: string;
   isResidential?: boolean;
+  isApproved?: boolean;
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
   password?: string;
   token?: string;
 }
@@ -88,6 +91,12 @@ function App() {
     }
   }, [currentUser]);
 
+  const handleLoginSuccess = (user: User) => {
+    setCurrentUser(user);
+    localStorage.setItem('hall_management_user', JSON.stringify(user));
+    setAuthError('');
+  };
+
   const handleSignup = async (
     email: string, 
     password: string, 
@@ -96,7 +105,8 @@ function App() {
     studentId?: string,
     department?: string,
     roomNumber?: string,
-    isResidential?: boolean
+    isResidential?: boolean,
+    phone?: string
   ) => {
     setAuthError('');
     try {
@@ -108,24 +118,37 @@ function App() {
         studentId,
         department,
         roomNumber,
-        isResidential
+        isResidential,
+        phone,
       });
-      const user = {
-        id: data._id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        token: data.token,
-        studentId: data.studentId,
-        department: data.department,
-        roomNumber: data.roomNumber,
-        isResidential: data.isResidential
-      };
-      setCurrentUser(user);
-      localStorage.setItem('hall_management_user', JSON.stringify(user));
-      setAuthError('');
+
+      if (data.isApproved && data.token) {
+        const user: User = {
+          id: data._id,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          token: data.token,
+          studentId: data.studentId,
+          department: data.department,
+          roomNumber: data.roomNumber,
+          phone: data.phone,
+          isResidential: data.isResidential,
+          isApproved: data.isApproved,
+          approvalStatus: data.approvalStatus,
+        };
+        handleLoginSuccess(user);
+        return { success: true, isPending: false };
+      } else {
+        return { 
+          success: true, 
+          isPending: true, 
+          message: data.message || 'Registration submitted. Awaiting approval.' 
+        };
+      }
     } catch (err: any) {
       setAuthError(err.message || 'Signup failed');
+      throw err;
     }
   };
 
@@ -133,7 +156,7 @@ function App() {
     setAuthError('');
     try {
       const data = await api.post('/users/login', { email, password });
-      const user = {
+      const user: User = {
         id: data._id,
         name: data.name,
         email: data.email,
@@ -141,12 +164,13 @@ function App() {
         studentId: data.studentId,
         department: data.department,
         roomNumber: data.roomNumber,
+        phone: data.phone,
         isResidential: data.isResidential,
+        isApproved: data.isApproved,
+        approvalStatus: data.approvalStatus,
         token: data.token
       };
-      setCurrentUser(user);
-      localStorage.setItem('hall_management_user', JSON.stringify(user));
-      setAuthError('');
+      handleLoginSuccess(user);
     } catch (err: any) {
       setAuthError(err.message || 'Login failed');
     }
@@ -210,6 +234,7 @@ function App() {
       return (
         <Signup
           onSignup={handleSignup}
+          onLoginSuccess={handleLoginSuccess}
           onSwitchToLogin={() => {
             setView('login');
             setAuthError('');
@@ -222,6 +247,7 @@ function App() {
     return (
       <Login
         onLogin={handleLogin}
+        onLoginSuccess={handleLoginSuccess}
         onSwitchToSignup={() => {
           setView('signup');
           setAuthError('');

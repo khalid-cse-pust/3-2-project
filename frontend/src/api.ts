@@ -8,8 +8,16 @@ export const api = {
       },
     });
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Something went wrong');
+      let errorData: any = {};
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: response.statusText };
+      }
+      const err: any = new Error(errorData.message || 'Something went wrong');
+      err.status = response.status;
+      err.data = errorData;
+      throw err;
     }
     return response.json();
   },
@@ -24,8 +32,16 @@ export const api = {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Something went wrong');
+      let errorData: any = {};
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: response.statusText };
+      }
+      const err: any = new Error(errorData.message || 'Something went wrong');
+      err.status = response.status;
+      err.data = errorData;
+      throw err;
     }
     return response.json();
   },
@@ -40,8 +56,38 @@ export const api = {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Something went wrong');
+      let errorData: any = {};
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: response.statusText };
+      }
+      const err: any = new Error(errorData.message || 'Something went wrong');
+      err.status = response.status;
+      err.data = errorData;
+      throw err;
+    }
+    return response.json();
+  },
+
+  delete: async (endpoint: string, token?: string) => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
+    });
+    if (!response.ok) {
+      let errorData: any = {};
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: response.statusText };
+      }
+      const err: any = new Error(errorData.message || 'Something went wrong');
+      err.status = response.status;
+      err.data = errorData;
+      throw err;
     }
     return response.json();
   },

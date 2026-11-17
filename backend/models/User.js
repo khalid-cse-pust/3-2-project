@@ -6,22 +6,32 @@ const userSchema = mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
     },
     studentId: {
       type: String,
       unique: true,
       sparse: true,
+      trim: true,
     },
     department: {
       type: String,
+      trim: true,
     },
     roomNumber: {
       type: String,
+      trim: true,
     },
     isResidential: {
       type: Boolean,
@@ -36,6 +46,25 @@ const userSchema = mongoose.Schema(
       enum: ['student', 'admin', 'staff'],
       default: 'student',
     },
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
+    approvalStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending',
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    approvedAt: {
+      type: Date,
+    },
+    rejectionReason: {
+      type: String,
+    },
   },
   {
     timestamps: true,
@@ -46,9 +75,9 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
   if (!this.isModified('password')) {
-    next();
+    return;
   }
 
   const salt = await bcrypt.genSalt(10);
