@@ -10,22 +10,33 @@ const problemSchema = mongoose.Schema(
     studentId: {
       type: String,
       required: true,
+      trim: true,
     },
     studentName: {
       type: String,
       required: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
+      trim: true,
     },
     roomNumber: {
       type: String,
       required: true,
+      trim: true,
     },
     category: {
       type: String,
       required: true,
+      enum: ['Electrical', 'Plumbing', 'Carpentry', 'Cleaning', 'Internet/Wi-Fi', 'Security', 'Other'],
+      default: 'Electrical',
+    },
+    priority: {
+      type: String,
+      enum: ['low', 'medium', 'high', 'emergency'],
+      default: 'medium',
     },
     description: {
       type: String,
@@ -37,14 +48,23 @@ const problemSchema = mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ['pending', 'assigned', 'in-progress', 'resolved'],
+      enum: ['pending', 'assigned', 'in-progress', 'resolved', 'closed'],
       default: 'pending',
     },
     assignedTo: {
       type: String,
+      default: '',
+    },
+    assignedStaff: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
     staffRemarks: {
       type: String,
+      default: '',
+    },
+    resolvedAt: {
+      type: Date,
     },
   },
   {

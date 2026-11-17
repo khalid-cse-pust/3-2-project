@@ -216,19 +216,32 @@ const registerUser = async (req, res) => {
       }
     }
 
+    // Role Sanitization & Security Rule:
+    // Direct public registration cannot claim 'admin' role.
+    // If 'admin' is supplied in public signup without an existing admin session, reject or force 'student'
+    let assignedRole = role;
+    if (assignedRole === 'admin') {
+      // Only permit admin role creation if authenticated requester is already an admin
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Administrator accounts cannot be created via public registration' });
+      }
+    } else if (assignedRole !== 'staff' && assignedRole !== 'student') {
+      assignedRole = 'student';
+    }
+
     // Approval requirement rules:
     // Student requires Staff/Admin approval -> isApproved: false
     // Staff requires Admin approval -> isApproved: false
-    // Admin is auto-approved -> isApproved: true
-    const isApproved = role === 'admin';
+    // Admin (if created by verified admin) -> isApproved: true
+    const isApproved = assignedRole === 'admin';
     const approvalStatus = isApproved ? 'approved' : 'pending';
 
     const user = await User.create({
       name: name.trim(),
       email: cleanEmail,
       password,
-      role,
-      studentId: role === 'student' ? (studentId ? studentId.trim() : undefined) : undefined,
+      role: assignedRole,
+      studentId: assignedRole === 'student' ? (studentId ? studentId.trim() : undefined) : undefined,
       department: department ? department.trim() : undefined,
       roomNumber: roomNumber ? roomNumber.trim() : undefined,
       phone: phone ? phone.trim() : undefined,

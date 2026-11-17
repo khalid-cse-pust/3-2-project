@@ -1,5 +1,11 @@
 const API_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:5000/api';
 
+export interface ApiResponse<T = any> {
+  data?: T;
+  message?: string;
+  success?: boolean;
+}
+
 export const api = {
   get: async (endpoint: string, token?: string) => {
     const response = await fetch(`${API_URL}${endpoint}`, {
@@ -92,3 +98,4 @@ export const api = {
     return response.json();
   },
 };
+

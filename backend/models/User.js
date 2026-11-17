@@ -29,13 +29,50 @@ const userSchema = mongoose.Schema(
       type: String,
       trim: true,
     },
+    session: {
+      type: String,
+      trim: true,
+      default: '2021-2022',
+    },
     roomNumber: {
       type: String,
       trim: true,
     },
+    seatNumber: {
+      type: String,
+      trim: true,
+    },
+    allocatedSeat: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Seat',
+    },
     isResidential: {
       type: Boolean,
       default: false,
+    },
+    emergencyContact: {
+      type: String,
+      trim: true,
+    },
+    guardianName: {
+      type: String,
+      trim: true,
+    },
+    guardianPhone: {
+      type: String,
+      trim: true,
+    },
+    permanentAddress: {
+      type: String,
+      trim: true,
+    },
+    presentAddress: {
+      type: String,
+      trim: true,
+    },
+    bloodGroup: {
+      type: String,
+      trim: true,
     },
     password: {
       type: String,
