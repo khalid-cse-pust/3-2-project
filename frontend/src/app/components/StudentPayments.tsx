@@ -2,13 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   CreditCard, 
   Download, 
-  Calendar, 
   CheckCircle2, 
-  Clock, 
-  AlertCircle, 
-  FileText, 
-  ExternalLink,
-  ShieldCheck,
   RefreshCw,
   Printer
 } from 'lucide-react';
@@ -49,7 +43,7 @@ export function StudentPayments({ user }: StudentPaymentsProps) {
       setInvoices(Array.isArray(invData) ? invData : []);
       setPayments(Array.isArray(payData) ? payData : []);
     } catch (err) {
-      console.error('Failed to load payment records:', err);
+      console.error('Failed to load payments:', err);
     } finally {
       setLoading(false);
     }
@@ -71,7 +65,6 @@ export function StudentPayments({ user }: StudentPaymentsProps) {
             amount: invoice.amount,
           });
         } else {
-          // Redirect to external live/sandbox SSLCommerz gateway URL
           window.location.href = res.gatewayUrl;
         }
       }
@@ -82,205 +75,140 @@ export function StudentPayments({ user }: StudentPaymentsProps) {
     }
   };
 
-  const handlePrintReceipt = () => {
-    window.print();
-  };
-
   return (
-    <div className="space-y-8 font-sans">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#E2E8F0] gap-4">
+    <div className="space-y-6 font-sans text-xs text-slate-800 antialiased">
+      {/* Page Header */}
+      <div className="flex justify-between items-center pb-3 border-b border-slate-200">
         <div>
-          <span className="text-xs font-bold tracking-wider text-[#087E8B] uppercase">Student Accounts & Treasury</span>
-          <h2 className="text-2xl font-bold text-[#16324F] mt-1">Hall Fee Invoices & Payment Portal</h2>
-          <p className="text-xs text-slate-500">
-            Official fees payable to Pabna University of Science and Technology through SSLCommerz Sandbox Gateway.
-          </p>
+          <h2 className="text-xl font-bold text-slate-900">Hall Payments</h2>
+          <p className="text-xs text-slate-500">Invoices and payment records for Shadhinota Hall.</p>
         </div>
         <button
           onClick={fetchData}
-          className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 cursor-pointer shadow-sm"
+          className="px-2.5 py-1 text-slate-600 border border-slate-300 rounded hover:bg-slate-50 cursor-pointer flex items-center gap-1"
         >
-          <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Ledger</span>
+          <RefreshCw className={`size-3 ${loading ? 'animate-spin' : ''}`} />
+          <span>Refresh</span>
         </button>
       </div>
 
-      {/* Outstanding Invoices Table */}
-      <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-[#E2E8F0] flex items-center justify-between bg-slate-50/60">
-          <div className="flex items-center gap-2.5">
-            <CreditCard className="size-5 text-[#087E8B]" />
-            <h3 className="text-sm font-bold text-[#16324F] uppercase tracking-wider">
-              Outstanding Invoices & Fees Due
-            </h3>
-          </div>
-          <span className="text-xs text-slate-500">
-            {invoices.filter((i) => i.status === 'unpaid').length} unpaid invoice(s)
-          </span>
-        </div>
-
-        {loading ? (
-          <div className="p-8 text-center text-xs text-slate-500">Loading ledger records...</div>
-        ) : invoices.length === 0 ? (
-          <div className="p-8 text-center text-xs text-slate-500">
-            No active invoices found for your student profile.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-100/75 text-slate-700 font-semibold border-b border-slate-200">
-                  <th className="py-3 px-4">Invoice #</th>
-                  <th className="py-3 px-4">Description</th>
-                  <th className="py-3 px-4">Fee Category</th>
-                  <th className="py-3 px-4">Due Date</th>
-                  <th className="py-3 px-4 text-right">Amount (BDT)</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {invoices.map((inv) => (
-                  <tr key={inv._id} className="hover:bg-slate-50/75 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-medium text-slate-900">{inv.invoiceNumber}</td>
-                    <td className="py-3.5 px-4 font-medium text-[#16324F]">
-                      {inv.title}
-                      {inv.description && <p className="text-[11px] text-slate-500 font-normal">{inv.description}</p>}
-                    </td>
-                    <td className="py-3.5 px-4 capitalize">{inv.category.replace(/_/g, ' ')}</td>
-                    <td className="py-3.5 px-4 text-slate-600">
-                      {new Date(inv.dueDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-slate-900 font-mono">
-                      ৳ {inv.amount?.toLocaleString()}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider ${
-                          inv.status === 'paid'
-                            ? 'bg-green-100 text-green-800 border border-green-200'
-                            : 'bg-amber-100 text-amber-800 border border-amber-200'
-                        }`}
-                      >
-                        {inv.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      {inv.status === 'unpaid' ? (
-                        <button
-                          onClick={() => handlePayNow(inv)}
-                          disabled={initiatingId === inv._id}
-                          className="px-3.5 py-1.5 rounded bg-[#087E8B] hover:bg-[#066570] text-white font-medium shadow-sm transition-all cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
-                        >
-                          {initiatingId === inv._id ? (
-                            <RefreshCw className="size-3 animate-spin" />
-                          ) : (
-                            <CreditCard className="size-3" />
-                          )}
-                          <span>Pay Now</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setSelectedReceipt(inv)}
-                          className="px-3 py-1 text-slate-600 hover:text-slate-900 border border-slate-300 rounded hover:bg-slate-50 transition-colors inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          <FileText className="size-3 text-[#087E8B]" />
-                          <span>Receipt</span>
-                        </button>
-                      )}
-                    </td>
+      {/* Invoices */}
+      <div className="space-y-2">
+        <h3 className="font-bold text-slate-900 text-sm">Payable Invoices</h3>
+        <div className="bg-white rounded-md border border-slate-200 overflow-hidden">
+          {invoices.length === 0 ? (
+            <div className="p-6 text-center text-slate-500">No invoices due.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th className="py-2.5 px-4">Invoice #</th>
+                    <th className="py-2.5 px-4">Description</th>
+                    <th className="py-2.5 px-4">Due Date</th>
+                    <th className="py-2.5 px-4 text-right">Amount</th>
+                    <th className="py-2.5 px-4 text-center">Status</th>
+                    <th className="py-2.5 px-4 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {invoices.map((inv) => (
+                    <tr key={inv._id} className="hover:bg-slate-50/70">
+                      <td className="py-2.5 px-4 font-mono font-medium">{inv.invoiceNumber}</td>
+                      <td className="py-2.5 px-4 font-medium text-slate-900">{inv.title}</td>
+                      <td className="py-2.5 px-4 text-slate-500">
+                        {new Date(inv.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </td>
+                      <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900">
+                        ৳ {inv.amount?.toLocaleString()}
+                      </td>
+                      <td className="py-2.5 px-4 text-center">
+                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          inv.status === 'paid' ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'
+                        }`}>
+                          {inv.status}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-4 text-right">
+                        {inv.status === 'unpaid' ? (
+                          <button
+                            onClick={() => handlePayNow(inv)}
+                            disabled={initiatingId === inv._id}
+                            className="px-3 py-1 rounded bg-[#087E8B] hover:bg-[#066570] text-white font-semibold cursor-pointer disabled:opacity-50"
+                          >
+                            Pay Now
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setSelectedReceipt(inv)}
+                            className="text-[#087E8B] hover:underline font-semibold cursor-pointer"
+                          >
+                            Receipt
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Verified Payment Receipts History */}
-      <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-[#E2E8F0] flex items-center justify-between bg-slate-50/60">
-          <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="size-5 text-[#16803C]" />
-            <h3 className="text-sm font-bold text-[#16324F] uppercase tracking-wider">
-              Authoritative Payment History & Receipts
-            </h3>
-          </div>
-          <span className="text-xs text-slate-500">{payments.length} transaction(s) recorded</span>
-        </div>
-
-        {payments.length === 0 ? (
-          <div className="p-8 text-center text-xs text-slate-500">
-            No completed payment transactions on file.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-100/75 text-slate-700 font-semibold border-b border-slate-200">
-                  <th className="py-3 px-4">Transaction ID</th>
-                  <th className="py-3 px-4">Date & Time</th>
-                  <th className="py-3 px-4">Gateway / Card</th>
-                  <th className="py-3 px-4 text-right">Amount Paid</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {payments.map((p) => (
-                  <tr key={p._id} className="hover:bg-slate-50/75 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-medium text-slate-900">{p.transactionId}</td>
-                    <td className="py-3.5 px-4 text-slate-600">
-                      {new Date(p.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-700">
-                      {p.cardType || p.gateway || 'SSLCommerz Gateway'}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-slate-900 font-mono">
-                      ৳ {p.amount?.toLocaleString()}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider ${
-                          p.status === 'success'
-                            ? 'bg-green-100 text-green-800 border border-green-200'
-                            : 'bg-red-100 text-red-800 border border-red-200'
-                        }`}
-                      >
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      {p.status === 'success' && (
+      {/* Payment History */}
+      <div className="space-y-2">
+        <h3 className="font-bold text-slate-900 text-sm">Payment History</h3>
+        <div className="bg-white rounded-md border border-slate-200 overflow-hidden">
+          {payments.length === 0 ? (
+            <div className="p-6 text-center text-slate-500">No payment transactions recorded.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th className="py-2.5 px-4">Transaction ID</th>
+                    <th className="py-2.5 px-4">Date</th>
+                    <th className="py-2.5 px-4">Method</th>
+                    <th className="py-2.5 px-4 text-right">Amount</th>
+                    <th className="py-2.5 px-4 text-center">Status</th>
+                    <th className="py-2.5 px-4 text-right">Receipt</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {payments.map((p) => (
+                    <tr key={p._id} className="hover:bg-slate-50/70">
+                      <td className="py-2.5 px-4 font-mono font-medium">{p.transactionId}</td>
+                      <td className="py-2.5 px-4 text-slate-500">
+                        {new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td className="py-2.5 px-4 text-slate-600">{p.cardType || 'SSLCommerz'}</td>
+                      <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900">
+                        ৳ {p.amount?.toLocaleString()}
+                      </td>
+                      <td className="py-2.5 px-4 text-center">
+                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800">
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-4 text-right">
                         <button
                           onClick={() => setSelectedReceipt(p)}
-                          className="px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-100 font-medium text-slate-700 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                          className="px-2.5 py-1 text-slate-600 hover:text-slate-900 border border-slate-300 rounded hover:bg-slate-50 cursor-pointer"
                         >
-                          <Download className="size-3 text-[#087E8B]" />
-                          <span>View Receipt</span>
+                          View
                         </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* SSLCommerz Sandbox Test Modal */}
+      {/* Payment Sandbox Modal */}
       <PaymentSandboxModal
         isOpen={activeModal.isOpen}
         transactionId={activeModal.transactionId}
@@ -292,112 +220,49 @@ export function StudentPayments({ user }: StudentPaymentsProps) {
         }}
       />
 
-      {/* Institutional Printable Payment Receipt Modal */}
+      {/* Printable Receipt Modal */}
       {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-300 max-w-2xl w-full p-8 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            {/* Printable Receipt Area */}
-            <div id="printable-receipt" className="space-y-6">
-              {/* Receipt Header */}
-              <div className="flex items-center justify-between border-b pb-4 border-slate-200">
-                <div>
-                  <h3 className="text-xl font-bold text-[#16324F] leading-tight">
-                    Pabna University of Science and Technology
-                  </h3>
-                  <p className="text-xs font-semibold text-[#087E8B]">Shadhinota Hall Official Money Receipt</p>
-                  <p className="text-[11px] text-slate-400">Rajapur, Pabna-6600, Bangladesh</p>
-                </div>
-                <div className="text-right">
-                  <span className="px-2.5 py-1 rounded bg-green-100 text-green-800 border border-green-200 text-xs font-bold uppercase tracking-wider">
-                    PAID / VERIFIED
-                  </span>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                  </p>
-                </div>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-md border border-slate-300 max-w-lg w-full p-6 text-slate-800">
+            <div className="text-center border-b pb-3 mb-4">
+              <h3 className="text-base font-bold text-slate-900 uppercase">Pabna University of Science and Technology</h3>
+              <p className="font-semibold text-[#087E8B]">Shadhinota Hall • Official Fee Receipt</p>
+            </div>
 
-              {/* Receipt Body */}
-              <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-lg border border-slate-200">
+            <div className="space-y-2 mb-4 bg-slate-50 p-3 rounded border border-slate-200">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <p className="text-slate-500 font-medium">Student Name:</p>
-                  <p className="font-bold text-slate-900">{user.name}</p>
+                  <span className="text-slate-500">Student:</span>
+                  <p className="font-semibold text-slate-900">{user.name}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 font-medium">Student ID:</p>
-                  <p className="font-bold text-slate-900 font-mono">{user.studentId || 'N/A'}</p>
+                  <span className="text-slate-500">ID:</span>
+                  <p className="font-semibold font-mono text-slate-900">{user.studentId || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 font-medium">Department:</p>
-                  <p className="font-bold text-slate-900">{user.department || 'N/A'}</p>
+                  <span className="text-slate-500">Transaction ID:</span>
+                  <p className="font-semibold font-mono text-slate-900">{selectedReceipt.transactionId || selectedReceipt.invoiceNumber}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 font-medium">Allocated Room / Seat:</p>
-                  <p className="font-bold text-slate-900">{user.roomNumber || 'Room Assigned'} ({user.seatNumber || 'Standard Seat'})</p>
-                </div>
-                <div>
-                  <p className="text-slate-500 font-medium">Transaction ID:</p>
-                  <p className="font-bold text-slate-900 font-mono">{selectedReceipt.transactionId || selectedReceipt.invoiceNumber}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500 font-medium">Payment Gateway:</p>
-                  <p className="font-bold text-slate-900">{selectedReceipt.cardType || 'SSLCommerz Sandbox'}</p>
-                </div>
-              </div>
-
-              {/* Amount Breakdown */}
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-100 font-semibold text-slate-700">
-                    <tr>
-                      <th className="py-2.5 px-4">Item Description</th>
-                      <th className="py-2.5 px-4 text-right">Amount (BDT)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr>
-                      <td className="py-3 px-4 font-medium text-slate-800">
-                        {selectedReceipt.title || 'Hall Admission & Seat Allocation Fee'}
-                      </td>
-                      <td className="py-3 px-4 text-right font-bold text-slate-900 font-mono">
-                        ৳ {selectedReceipt.amount?.toLocaleString()}
-                      </td>
-                    </tr>
-                    <tr className="bg-slate-50 font-bold text-slate-900">
-                      <td className="py-2.5 px-4">Total Amount Verified & Received</td>
-                      <td className="py-2.5 px-4 text-right font-mono text-sm text-[#16803C]">
-                        ৳ {selectedReceipt.amount?.toLocaleString()}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="flex justify-between items-end pt-4 border-t border-slate-200 text-[11px] text-slate-400">
-                <p>System Generated Digital Receipt • No physical signature required.</p>
-                <div className="text-center">
-                  <div className="border-b border-slate-400 w-36 mb-1"></div>
-                  <p className="text-slate-600 font-medium">Provost Office / Accounts</p>
+                  <span className="text-slate-500">Amount Paid:</span>
+                  <p className="font-bold text-emerald-700 font-mono">৳ {selectedReceipt.amount?.toLocaleString()}</p>
                 </div>
               </div>
             </div>
 
-            {/* Modal Actions */}
-            <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-200">
+            <div className="flex justify-end gap-2 pt-3 border-t">
               <button
-                type="button"
                 onClick={() => setSelectedReceipt(null)}
-                className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 transition-colors cursor-pointer"
+                className="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded cursor-pointer"
               >
                 Close
               </button>
               <button
-                type="button"
-                onClick={handlePrintReceipt}
-                className="px-4 py-2 text-xs font-semibold bg-[#16324F] hover:bg-[#10263D] text-white rounded-md transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                onClick={() => window.print()}
+                className="px-3.5 py-1.5 bg-[#16324F] hover:bg-[#0F2236] text-white rounded font-medium flex items-center gap-1.5 cursor-pointer"
               >
                 <Printer className="size-3.5" />
-                <span>Print / Save PDF Receipt</span>
+                <span>Print</span>
               </button>
             </div>
           </div>

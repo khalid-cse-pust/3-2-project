@@ -81,8 +81,8 @@ const createRoom = async (req, res) => {
       status: 'available',
     });
 
-    // Auto-create seats for this room: A, B, C, D...
-    const labels = ['A', 'B', 'C', 'D', 'E', 'F'].slice(0, Number(capacity));
+    // Auto-create seats for this room: A, B, C, D... up to 8
+    const labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].slice(0, Number(capacity));
     const seatDocs = labels.map((label) => ({
       seatNumber: `${room.roomNumber}-${label}`,
       room: room._id,
@@ -203,6 +203,20 @@ const assignSeat = async (req, res) => {
     student.allocatedSeat = seat._id;
     await student.save();
 
+    // Update Room occupied seats count and status
+    const totalOccupied = await Seat.countDocuments({
+      roomNumber: seat.roomNumber,
+      status: 'occupied',
+    });
+    const targetRoom = await Room.findOne({ roomNumber: seat.roomNumber });
+    if (targetRoom) {
+      targetRoom.occupiedSeatsCount = totalOccupied;
+      if (totalOccupied >= targetRoom.capacity) {
+        targetRoom.status = 'full';
+      }
+      await targetRoom.save();
+    }
+
     await AuditLog.create({
       action: 'SEAT_ASSIGNED',
       module: 'seat',
@@ -243,7 +257,22 @@ const vacateSeat = async (req, res) => {
     seat.allocatedStudent = null;
     seat.studentId = null;
     seat.allocatedAt = null;
+    seat.reservationExpiry = null;
     await seat.save();
+
+    // Update Room occupied count and status
+    const remainingOccupied = await Seat.countDocuments({
+      roomNumber: seat.roomNumber,
+      status: 'occupied',
+    });
+    const targetRoom = await Room.findOne({ roomNumber: seat.roomNumber });
+    if (targetRoom) {
+      targetRoom.occupiedSeatsCount = remainingOccupied;
+      if (remainingOccupied < targetRoom.capacity && targetRoom.status === 'full') {
+        targetRoom.status = 'available';
+      }
+      await targetRoom.save();
+    }
 
     await AuditLog.create({
       action: 'SEAT_VACATED',

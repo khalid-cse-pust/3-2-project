@@ -1,7 +1,30 @@
+// Polyfill global crypto for Node.js 18+ mongodb driver compatibility
+if (!globalThis.crypto) {
+  try {
+    globalThis.crypto = require('crypto').webcrypto || require('crypto');
+  } catch (e) {
+    globalThis.crypto = require('crypto');
+  }
+}
+
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
+
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 const connectDB = require('./config/db');
+
+// Connect and auto-initialize database collections & default test accounts
+connectDB().then(async () => {
+  try {
+    const initDatabase = require('./utils/initDB');
+    await initDatabase({ quiet: false });
+  } catch (err) {
+    console.error('Database auto-initialization notice:', err.message);
+  }
+});
 
 // Route imports
 const userRoutes = require('./routes/userRoutes');
@@ -11,11 +34,6 @@ const roomRoutes = require('./routes/roomRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
 const reportRoutes = require('./routes/reportRoutes');
-
-const path = require('path');
-dotenv.config({ path: path.join(__dirname, '.env') });
-
-connectDB();
 
 const app = express();
 

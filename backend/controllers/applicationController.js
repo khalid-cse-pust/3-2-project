@@ -74,7 +74,11 @@ const getApplications = async (req, res) => {
         .populate('feeInvoice')
         .sort({ createdAt: -1 });
     } else {
-      applications = await Application.find({ user: req.user._id })
+      const orClauses = [{ user: req.user._id }];
+      if (req.user.studentId) {
+        orClauses.push({ studentId: req.user.studentId });
+      }
+      applications = await Application.find({ $or: orClauses })
         .populate('feeInvoice')
         .sort({ createdAt: -1 });
     }
@@ -108,7 +112,9 @@ const updateApplicationStatus = async (req, res) => {
     // If status is approved and a seat is assigned -> reserve seat and generate payable invoice
     if (status === 'approved' && assignedSeat) {
       // Find seat and reserve
-      const seat = await Seat.findOne({ seatNumber: assignedSeat.trim().toUpperCase() });
+      const seat = await Seat.findOne({
+        seatNumber: new RegExp('^' + assignedSeat.trim() + '$', 'i'),
+      });
       if (seat) {
         seat.status = 'reserved';
         seat.allocatedStudent = application.user;
@@ -117,32 +123,86 @@ const updateApplicationStatus = async (req, res) => {
         await seat.save();
       }
 
-      // Create allocation fee invoice
-      const invoiceNumber = `INV-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
-      const invoice = await Invoice.create({
-        invoiceNumber,
-        student: application.user,
-        studentId: application.studentId,
-        studentName: application.studentName,
-        email: application.email,
-        category: 'seat_allocation_fee',
-        title: `Seat Allocation & Admission Fee (${assignedSeat})`,
-        description: `Hall seat reservation confirmation fee for Room ${assignedRoom || 'Assigned'}, Bed ${assignedSeat}`,
-        amount: Number(feeAmount),
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        status: 'unpaid',
-        relatedApplication: application._id,
-      });
+      // Check if invoice already exists for this application to prevent duplicates
+      let invoice = null;
+      if (application.feeInvoice) {
+        invoice = await Invoice.findById(application.feeInvoice);
+      }
 
-      application.feeInvoice = invoice._id;
-      application.paymentStatus = 'unpaid';
+      if (!invoice) {
+        const invoiceNumber = `INV-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
+        invoice = await Invoice.create({
+          invoiceNumber,
+          student: application.user,
+          user: application.user,
+          studentId: application.studentId,
+          studentName: application.studentName,
+          email: application.email,
+          category: 'seat_allocation_fee',
+          title: `Seat Allocation & Admission Fee (${assignedSeat})`,
+          description: `Hall seat reservation confirmation fee for Room ${assignedRoom || 'Assigned'}, Bed ${assignedSeat}`,
+          amount: Number(feeAmount),
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          status: 'unpaid',
+          relatedApplication: application._id,
+          relatedSeat: seat ? seat._id : undefined,
+          isSandbox: true,
+        });
+
+        application.feeInvoice = invoice._id;
+        application.paymentStatus = 'unpaid';
+      } else {
+        // If invoice already existed and unpaid, update details
+        if (invoice.status === 'unpaid') {
+          invoice.title = `Seat Allocation & Admission Fee (${assignedSeat})`;
+          invoice.description = `Hall seat reservation confirmation fee for Room ${assignedRoom || 'Assigned'}, Bed ${assignedSeat}`;
+          invoice.amount = Number(feeAmount);
+          if (seat) invoice.relatedSeat = seat._id;
+          await invoice.save();
+        }
+      }
     }
 
-    // If application rejected -> release any reserved seat
-    if (status === 'rejected' && application.assignedSeat) {
+    // If manually allocated by admin -> finalize seat and user status
+    if (status === 'allocated' && application.assignedSeat) {
+      application.paymentStatus = 'paid';
+      const seat = await Seat.findOneAndUpdate(
+        { seatNumber: new RegExp('^' + application.assignedSeat.trim() + '$', 'i') },
+        {
+          status: 'occupied',
+          allocatedStudent: application.user,
+          studentId: application.studentId,
+          allocatedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      if (seat && application.assignedRoom) {
+        const totalOccupied = await Seat.countDocuments({
+          roomNumber: application.assignedRoom,
+          status: 'occupied',
+        });
+        await Room.findOneAndUpdate(
+          { roomNumber: application.assignedRoom },
+          { occupiedSeatsCount: totalOccupied }
+        );
+      }
+
+      await User.findByIdAndUpdate(application.user, {
+        isResidential: true,
+        roomNumber: application.assignedRoom,
+        seatNumber: application.assignedSeat,
+        allocatedSeat: seat ? seat._id : undefined,
+        isApproved: true,
+        approvalStatus: 'approved',
+      });
+    }
+
+    // If application rejected or cancelled -> release any reserved seat
+    if ((status === 'rejected' || status === 'cancelled') && application.assignedSeat) {
       await Seat.findOneAndUpdate(
-        { seatNumber: application.assignedSeat },
-        { status: 'available', allocatedStudent: null, studentId: null }
+        { seatNumber: new RegExp('^' + application.assignedSeat.trim() + '$', 'i') },
+        { status: 'available', allocatedStudent: null, studentId: null, reservationExpiry: null }
       );
     }
 

@@ -91,6 +91,17 @@ const deleteNotice = async (req, res) => {
     }
 
     await Notice.deleteOne({ _id: req.params.id });
+
+    await AuditLog.create({
+      action: 'NOTICE_DELETED',
+      module: 'notice',
+      performedBy: req.user._id,
+      performerRole: req.user.role,
+      targetEntity: 'Notice',
+      targetId: req.params.id,
+      details: { title: notice.title },
+    });
+
     res.json({ success: true, message: 'Notice removed' });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -65,8 +65,12 @@ function App() {
   const [showLanding, setShowLanding] = useState<boolean>(true);
   const [view, setView] = useState<'login' | 'signup'>('login');
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem('hall_management_user');
-    return stored ? JSON.parse(stored) : null;
+    try {
+      const stored = localStorage.getItem('hall_management_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch (e) {
+      return null;
+    }
   });
   const [authError, setAuthError] = useState<string>('');
   
@@ -193,14 +197,11 @@ function App() {
     }
   };
 
-  const handleApplicationReview = async (id: string, status: 'approved' | 'rejected', remarks: string) => {
-    if (!currentUser?.token) return;
-    try {
-      const updatedApp = await api.put(`/applications/${id}`, { status, remarks }, currentUser.token);
-      setApplications(applications.map(app => app.id === id ? { ...updatedApp, id: updatedApp._id } : app));
-    } catch (err) {
-      console.error('Error reviewing application:', err);
-    }
+  const handleApplicationReview = (updatedApp: any) => {
+    const appId = updatedApp._id || updatedApp.id;
+    setApplications(prev =>
+      prev.map(app => (app.id === appId || app._id === appId) ? { ...updatedApp, id: appId } : app)
+    );
   };
 
   const handleProblemSubmit = async (problem: Omit<Problem, 'id' | 'createdAt' | 'status'>) => {
@@ -213,21 +214,30 @@ function App() {
     }
   };
 
-  const handleProblemUpdate = async (id: string, status: Problem['status'], staffRemarks?: string) => {
-    if (!currentUser?.token) return;
-    try {
-      const updatedProblem = await api.put(`/problems/${id}`, { status, staffRemarks }, currentUser.token);
-      setProblems(problems.map(p => p.id === id ? { ...updatedProblem, id: updatedProblem._id } : p));
-    } catch (err) {
-      console.error('Error updating problem:', err);
-    }
+  const handleProblemUpdate = (updatedProblem: any) => {
+    const pId = updatedProblem._id || updatedProblem.id;
+    setProblems(prev =>
+      prev.map(p => (p.id === pId || p._id === pId) ? { ...updatedProblem, id: pId } : p)
+    );
   };
 
   // If not logged in, show login or signup
   if (!currentUser) {
     // Show landing page first
     if (showLanding) {
-      return <LandingPage onGetStarted={() => setShowLanding(false)} />;
+      return (
+        <LandingPage
+          onGetStarted={() => setShowLanding(false)}
+          onOpenLogin={() => {
+            setView('login');
+            setShowLanding(false);
+          }}
+          onOpenSignup={() => {
+            setView('signup');
+            setShowLanding(false);
+          }}
+        />
+      );
     }
 
     if (view === 'signup') {
@@ -257,14 +267,31 @@ function App() {
     );
   }
 
+  // Helper matching for student data
+  const isMyApplication = (app: Application) => {
+    const appUserId = typeof app.user === 'object' && app.user !== null ? (app.user as any)._id : app.user;
+    return (
+      appUserId === currentUser.id ||
+      (currentUser.studentId && app.studentId === currentUser.studentId)
+    );
+  };
+
+  const isMyProblem = (p: Problem) => {
+    const pUserId = typeof p.user === 'object' && p.user !== null ? (p.user as any)._id : p.user;
+    return (
+      pUserId === currentUser.id ||
+      (currentUser.studentId && p.studentId === currentUser.studentId)
+    );
+  };
+
   // Role-based access control - only show dashboard for user's role
   return (
     <div className="min-h-screen bg-gray-50">
       {currentUser.role === 'student' && (
         <StudentDashboard
           user={currentUser}
-          applications={applications.filter(app => app.user === currentUser.id)}
-          problems={problems.filter(p => p.user === currentUser.id)}
+          applications={applications.filter(isMyApplication)}
+          problems={problems.filter(isMyProblem)}
           onLogout={handleLogout}
           onApplicationSubmit={handleApplicationSubmit}
           onProblemSubmit={handleProblemSubmit}

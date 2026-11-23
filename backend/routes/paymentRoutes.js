@@ -4,26 +4,34 @@ const {
   getInvoices,
   createInvoice,
   initiatePayment,
+  simulatePayment,
+  sandboxSimulatePayment,
+  getPaymentsHistory,
+  getPaymentReceipt,
+  waiveInvoice,
+  cancelInvoice,
   sslcommerzSuccess,
   sslcommerzFail,
   sslcommerzCancel,
   sslcommerzIpn,
-  sandboxSimulatePayment,
-  getPaymentsHistory,
 } = require('../controllers/paymentController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 // Invoices
 router.route('/invoices').get(protect, getInvoices).post(protect, admin, createInvoice);
+router.put('/invoices/:id/waive', protect, admin, waiveInvoice);
+router.put('/invoices/:id/cancel', protect, admin, cancelInvoice);
 
-// Payment Initiation
+// Payment Initiation & Simulation (Sandbox)
 router.post('/initiate/:invoiceId', protect, initiatePayment);
+router.post('/simulate', protect, simulatePayment);
 router.post('/sandbox-simulate', protect, sandboxSimulatePayment);
 
-// Payment History
+// Payment History & Receipt
 router.get('/history', protect, getPaymentsHistory);
+router.get('/receipt/:transactionId', protect, getPaymentReceipt);
 
-// SSLCommerz Callbacks (support both POST and GET)
+// Legacy SSLCommerz Callbacks (Mock / Harmless)
 router.all('/sslcommerz/success', sslcommerzSuccess);
 router.all('/sslcommerz/fail', sslcommerzFail);
 router.all('/sslcommerz/cancel', sslcommerzCancel);

@@ -24,7 +24,12 @@ export function StudentSearchBar({ token }: StudentSearchBarProps) {
     setLoading(true);
     
     try {
-      const student = await api.get(`/users/search/${searchId.trim()}`, token);
+      const activeToken =
+        token ||
+        (localStorage.getItem('hall_management_user')
+          ? JSON.parse(localStorage.getItem('hall_management_user')!).token
+          : '');
+      const student = await api.get(`/users/search/${searchId.trim()}`, activeToken);
       setSearchResult(student);
     } catch (err) {
       console.error('Search failed:', err);

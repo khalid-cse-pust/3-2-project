@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Bell, 
   Plus, 
   Trash2, 
-  Calendar, 
-  AlertCircle, 
-  RefreshCw, 
-  FileText,
-  CheckCircle2,
-  Filter
+  RefreshCw 
 } from 'lucide-react';
 import { api } from '../../api';
 
@@ -56,103 +50,72 @@ export function AdminNoticeManagement() {
       setNewNotice({ title: '', content: '', category: 'general', priority: 'normal', targetAudience: 'all' });
       await fetchNotices();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to create notice');
+      setActionError(err.message || 'Error');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDeleteNotice = async (id: string) => {
-    if (!confirm('Are you sure you want to permanently delete this official notice?')) return;
+    if (!confirm('Delete this notice?')) return;
     try {
       await api.delete(`/notices/${id}`, token);
       await fetchNotices();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete notice');
+      alert(err.message || 'Error');
     }
   };
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E2E8F0]">
+    <div className="space-y-4 font-sans text-xs text-slate-800 antialiased">
+      <div className="flex justify-between items-center pb-3 border-b border-slate-200">
         <div>
-          <span className="text-xs font-bold tracking-wider text-[#087E8B] uppercase">Institutional Bulletins</span>
-          <h2 className="text-2xl font-bold text-[#16324F] mt-1">Hall Notices & Circulars</h2>
-          <p className="text-xs text-slate-500">
-            Publish official announcements, fee deadlines, allocation notices, and maintenance advisories.
-          </p>
+          <h2 className="text-xl font-bold text-slate-900">Hall Notices</h2>
+          <p className="text-slate-500">Publish and manage official notices for resident students.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2">
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-3.5 py-2 text-xs font-semibold bg-[#087E8B] hover:bg-[#066570] text-white rounded-md transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+            className="px-3 py-1.5 rounded bg-[#087E8B] hover:bg-[#066570] text-white font-semibold flex items-center gap-1 cursor-pointer"
           >
             <Plus className="size-3.5" />
             <span>Publish Notice</span>
           </button>
           <button
             onClick={fetchNotices}
-            className="px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 cursor-pointer shadow-sm inline-flex items-center gap-1.5"
+            className="px-2.5 py-1 text-slate-600 border border-slate-300 rounded hover:bg-slate-50 cursor-pointer flex items-center gap-1"
           >
-            <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`size-3 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
         </div>
       </div>
 
       {loading ? (
-        <div className="p-12 text-center text-xs text-slate-500">Loading notices...</div>
+        <p className="p-6 text-center text-slate-500">Loading notices...</p>
       ) : notices.length === 0 ? (
-        <div className="p-12 text-center text-xs text-slate-500 bg-white rounded-lg border border-slate-200">
-          No notices currently published. Click "Publish Notice" above to create an announcement.
-        </div>
+        <p className="p-6 text-center text-slate-500 bg-white rounded border border-slate-200">No notices published.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {notices.map((n) => (
-            <div
-              key={n._id}
-              className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 hover:border-[#087E8B] transition-colors flex flex-col justify-between"
-            >
+            <div key={n._id} className="bg-white rounded-md border border-slate-200 p-4 flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span
-                    className={`px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider ${
-                      n.priority === 'urgent'
-                        ? 'bg-red-100 text-red-800 border border-red-200'
-                        : 'bg-teal-50 text-teal-800 border border-teal-200'
-                    }`}
-                  >
-                    {n.category.replace('_', ' ')}
-                  </span>
-                  <span className="text-xs text-slate-500 flex items-center gap-1">
-                    <Calendar className="size-3.5" />
-                    {new Date(n.publishedAt || n.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
+                <div className="flex justify-between items-center mb-1 text-[11px] text-slate-500">
+                  <span className="font-semibold text-slate-700 capitalize">{n.category.replace('_', ' ')}</span>
+                  <span>{new Date(n.publishedAt || n.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                 </div>
-
-                <h4 className="text-base font-bold text-[#16324F] mb-2 leading-snug">
-                  {n.title}
-                </h4>
-
-                <p className="text-xs text-slate-600 leading-relaxed mb-4 whitespace-pre-wrap">
-                  {n.content}
-                </p>
+                <h4 className="text-sm font-bold text-slate-900 mb-1">{n.title}</h4>
+                <p className="text-slate-600 whitespace-pre-wrap">{n.content}</p>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-400">
-                  Target: <strong className="text-slate-600 capitalize">{n.targetAudience}</strong>
-                </span>
+              <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center text-[11px]">
+                <span className="text-slate-500 capitalize">Audience: {n.targetAudience}</span>
                 <button
                   onClick={() => handleDeleteNotice(n._id)}
-                  className="px-2.5 py-1 text-red-600 hover:bg-red-50 rounded transition-colors flex items-center gap-1 cursor-pointer font-medium"
+                  className="text-rose-600 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                 >
-                  <Trash2 className="size-3.5" />
-                  <span>Remove</span>
+                  <Trash2 className="size-3" />
+                  <span>Delete</span>
                 </button>
               </div>
             </div>
@@ -162,95 +125,78 @@ export function AdminNoticeManagement() {
 
       {/* Add Notice Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 animate-in fade-in zoom-in-95 duration-150">
-            <h3 className="text-base font-bold text-[#16324F] mb-4">Publish Institutional Notice</h3>
-            {actionError && (
-              <div className="mb-4 text-xs text-red-700 bg-red-50 p-2.5 rounded border border-red-200">
-                {actionError}
-              </div>
-            )}
-            <form onSubmit={handleCreateNotice} className="space-y-4 text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-md border border-slate-300 max-w-md w-full p-6 text-xs text-slate-800">
+            <h3 className="text-base font-bold text-slate-900 mb-3">Publish Notice</h3>
+            {actionError && <div className="p-2 mb-3 bg-rose-50 text-rose-700 rounded border border-rose-200">{actionError}</div>}
+            <form onSubmit={handleCreateNotice} className="space-y-3">
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Notice Headline / Title</label>
+                <label className="block text-slate-700 font-semibold mb-1">Title</label>
                 <input
                   type="text"
                   required
+                  placeholder="Notice headline..."
                   value={newNotice.title}
                   onChange={(e) => setNewNotice({ ...newNotice, title: e.target.value })}
-                  placeholder="e.g. Mandatory Hall Clearance Before Semester Final"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded focus:outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-slate-700 font-semibold mb-1">Category</label>
                   <select
                     value={newNotice.category}
                     onChange={(e) => setNewNotice({ ...newNotice, category: e.target.value })}
-                    className="w-full px-2.5 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
+                    className="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white"
                   >
                     <option value="general">General</option>
                     <option value="seat_allocation">Seat Allocation</option>
-                    <option value="dining_hall">Dining Hall</option>
+                    <option value="dining_hall">Dining</option>
                     <option value="maintenance">Maintenance</option>
-                    <option value="discipline">Discipline</option>
                     <option value="emergency">Emergency</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Priority</label>
-                  <select
-                    value={newNotice.priority}
-                    onChange={(e) => setNewNotice({ ...newNotice, priority: e.target.value })}
-                    className="w-full px-2.5 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="urgent">Urgent</option>
-                    <option value="low">Low</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Audience</label>
+                  <label className="block text-slate-700 font-semibold mb-1">Target Audience</label>
                   <select
                     value={newNotice.targetAudience}
                     onChange={(e) => setNewNotice({ ...newNotice, targetAudience: e.target.value })}
-                    className="w-full px-2.5 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
+                    className="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white"
                   >
-                    <option value="all">All Users</option>
-                    <option value="students">Students Only</option>
-                    <option value="staff">Staff Only</option>
+                    <option value="all">All</option>
+                    <option value="students">Students</option>
+                    <option value="staff">Staff</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Notice Body / Description</label>
+                <label className="block text-slate-700 font-semibold mb-1">Notice Content</label>
                 <textarea
-                  rows={5}
+                  rows={4}
                   required
+                  placeholder="Body text..."
                   value={newNotice.content}
                   onChange={(e) => setNewNotice({ ...newNotice, content: e.target.value })}
-                  placeholder="Enter full announcement details..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded focus:outline-none"
                 />
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-slate-200">
+              <div className="flex justify-end gap-2 pt-2 border-t">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-4 py-2 rounded bg-[#087E8B] hover:bg-[#066570] text-white font-semibold cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1.5 bg-[#087E8B] hover:bg-[#066570] text-white rounded font-semibold cursor-pointer"
                 >
-                  {actionLoading ? 'Publishing...' : 'Publish Official Notice'}
+                  Publish
                 </button>
               </div>
             </form>

@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  CreditCard, 
   Search, 
-  Download, 
   Plus, 
-  RefreshCw, 
-  CheckCircle2, 
-  Clock, 
-  XCircle, 
-  DollarSign,
-  TrendingUp,
-  FileSpreadsheet
+  RefreshCw 
 } from 'lucide-react';
 import { api } from '../../api';
 
@@ -24,8 +16,8 @@ export function AdminPaymentManagement() {
   const [newInvoiceData, setNewInvoiceData] = useState({
     studentId: '',
     category: 'monthly_hall_fee',
-    title: 'Monthly Hall & Dining Dues',
-    amount: 1200,
+    title: 'Monthly Hall Fee',
+    amount: 850,
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   });
   const [actionLoading, setActionLoading] = useState(false);
@@ -65,13 +57,13 @@ export function AdminPaymentManagement() {
       setNewInvoiceData({
         studentId: '',
         category: 'monthly_hall_fee',
-        title: 'Monthly Hall & Dining Dues',
-        amount: 1200,
+        title: 'Monthly Hall Fee',
+        amount: 850,
         dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       });
       await fetchData();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to issue invoice');
+      setActionError(err.message || 'Error');
     } finally {
       setActionLoading(false);
     }
@@ -100,155 +92,111 @@ export function AdminPaymentManagement() {
   );
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E2E8F0]">
+    <div className="space-y-4 font-sans text-xs text-slate-800 antialiased">
+      {/* Header */}
+      <div className="flex justify-between items-center pb-3 border-b border-slate-200">
         <div>
-          <span className="text-xs font-bold tracking-wider text-[#087E8B] uppercase">Financial Operations</span>
-          <h2 className="text-2xl font-bold text-[#16324F] mt-1">Fee Invoices & Payment Ledger</h2>
-          <p className="text-xs text-slate-500">
-            Monitor verified student hall fee transactions, unpaid dues, and issue monthly invoices.
-          </p>
+          <h2 className="text-xl font-bold text-slate-900">Fee Ledger & Invoices</h2>
+          <p className="text-slate-500">Manage hall fee dues, view payments, and issue invoices.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2">
           <button
             onClick={() => setShowAddInvoice(true)}
-            className="px-3.5 py-2 text-xs font-semibold bg-[#087E8B] hover:bg-[#066570] text-white rounded-md transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+            className="px-3 py-1.5 rounded bg-[#087E8B] hover:bg-[#066570] text-white font-semibold flex items-center gap-1 cursor-pointer"
           >
             <Plus className="size-3.5" />
-            <span>Generate Invoice</span>
+            <span>New Invoice</span>
           </button>
           <button
             onClick={fetchData}
-            className="px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 cursor-pointer shadow-sm inline-flex items-center gap-1.5"
+            className="px-2.5 py-1 text-slate-600 border border-slate-300 rounded hover:bg-slate-50 cursor-pointer flex items-center gap-1"
           >
-            <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`size-3 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
         </div>
       </div>
 
-      {/* Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white p-5 rounded-lg border border-[#E2E8F0] shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Verified Collections</span>
-            <div className="p-2 rounded bg-green-50 text-[#16803C]">
-              <TrendingUp className="size-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-[#16324F] mt-2 font-mono">
-            ৳ {totalCollected.toLocaleString()}
-          </p>
-          <p className="text-[11px] text-slate-500 mt-1">Authorized through SSLCommerz Gateway</p>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-3.5 rounded-md border border-slate-200">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase">Total Collected</span>
+          <p className="text-xl font-bold text-emerald-700 mt-1 font-mono">৳ {totalCollected.toLocaleString()}</p>
         </div>
-
-        <div className="bg-white p-5 rounded-lg border border-[#E2E8F0] shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Unpaid Dues / Receivable</span>
-            <div className="p-2 rounded bg-amber-50 text-amber-700">
-              <Clock className="size-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-[#16324F] mt-2 font-mono">
-            ৳ {totalOutstanding.toLocaleString()}
-          </p>
-          <p className="text-[11px] text-slate-500 mt-1">Pending student clearance</p>
+        <div className="bg-white p-3.5 rounded-md border border-slate-200">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase">Outstanding Dues</span>
+          <p className="text-xl font-bold text-amber-700 mt-1 font-mono">৳ {totalOutstanding.toLocaleString()}</p>
         </div>
-
-        <div className="bg-white p-5 rounded-lg border border-[#E2E8F0] shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Invoices Issued</span>
-            <div className="p-2 rounded bg-teal-50 text-[#087E8B]">
-              <CreditCard className="size-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-[#16324F] mt-2 font-mono">
-            {invoices.length}
-          </p>
-          <p className="text-[11px] text-slate-500 mt-1">Active ledger records</p>
+        <div className="bg-white p-3.5 rounded-md border border-slate-200">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase">Total Invoices</span>
+          <p className="text-xl font-bold text-slate-900 mt-1 font-mono">{invoices.length}</p>
         </div>
       </div>
 
-      {/* Search and Tab Switcher */}
-      <div className="bg-white p-4 rounded-lg border border-[#E2E8F0] shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="flex items-center gap-2">
+      {/* Filter and Tab switcher */}
+      <div className="bg-white p-3 rounded-md border border-slate-200 flex justify-between items-center gap-3">
+        <div className="flex gap-1.5">
           <button
             onClick={() => setActiveTab('invoices')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-              activeTab === 'invoices'
-                ? 'bg-[#16324F] text-white'
-                : 'text-slate-600 hover:bg-slate-100'
+            className={`px-3 py-1 font-semibold rounded ${
+              activeTab === 'invoices' ? 'bg-[#16324F] text-white' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             Invoices ({invoices.length})
           </button>
           <button
             onClick={() => setActiveTab('transactions')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-              activeTab === 'transactions'
-                ? 'bg-[#16324F] text-white'
-                : 'text-slate-600 hover:bg-slate-100'
+            className={`px-3 py-1 font-semibold rounded ${
+              activeTab === 'transactions' ? 'bg-[#16324F] text-white' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
-            Transactions ({payments.length})
+            Payments ({payments.length})
           </button>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="size-4 text-slate-400 absolute left-3 top-2.5" />
+        <div className="relative w-64">
+          <Search className="size-3.5 text-slate-400 absolute left-2.5 top-2.5" />
           <input
             type="text"
             placeholder="Search student ID or invoice..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
+            className="w-full pl-8 pr-3 py-1.5 rounded border border-slate-300 focus:outline-none"
           />
         </div>
       </div>
 
-      {/* Tables */}
+      {/* Table */}
       {loading ? (
-        <div className="p-12 text-center text-xs text-slate-500">Loading ledger data...</div>
+        <p className="p-6 text-center text-slate-500">Loading ledger...</p>
       ) : activeTab === 'invoices' ? (
-        <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div className="bg-white rounded-md border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-100/75 text-slate-700 font-semibold border-b border-slate-200">
-                  <th className="py-3 px-4">Invoice #</th>
-                  <th className="py-3 px-4">Student</th>
-                  <th className="py-3 px-4">Student ID</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Due Date</th>
-                  <th className="py-3 px-4 text-right">Amount (BDT)</th>
-                  <th className="py-3 px-4 text-center">Status</th>
+            <table className="w-full text-left">
+              <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                <tr>
+                  <th className="py-2.5 px-4">Invoice #</th>
+                  <th className="py-2.5 px-4">Student</th>
+                  <th className="py-2.5 px-4">Student ID</th>
+                  <th className="py-2.5 px-4">Due Date</th>
+                  <th className="py-2.5 px-4 text-right">Amount</th>
+                  <th className="py-2.5 px-4 text-center">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-slate-100">
                 {filteredInvoices.map((inv) => (
-                  <tr key={inv._id} className="hover:bg-slate-50/75 transition-colors">
-                    <td className="py-3 px-4 font-mono font-medium text-slate-900">{inv.invoiceNumber}</td>
-                    <td className="py-3 px-4 font-medium text-[#16324F]">{inv.studentName}</td>
-                    <td className="py-3 px-4 font-mono">{inv.studentId}</td>
-                    <td className="py-3 px-4 capitalize">{inv.category.replace(/_/g, ' ')}</td>
-                    <td className="py-3 px-4 text-slate-600">
-                      {new Date(inv.dueDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                  <tr key={inv._id} className="hover:bg-slate-50/70">
+                    <td className="py-2.5 px-4 font-mono font-medium">{inv.invoiceNumber}</td>
+                    <td className="py-2.5 px-4 font-medium text-slate-900">{inv.studentName}</td>
+                    <td className="py-2.5 px-4 font-mono">{inv.studentId}</td>
+                    <td className="py-2.5 px-4 text-slate-500">
+                      {new Date(inv.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
-                    <td className="py-3 px-4 text-right font-bold text-slate-900 font-mono">
-                      ৳ {inv.amount?.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider ${
-                          inv.status === 'paid'
-                            ? 'bg-green-100 text-green-800 border border-green-200'
-                            : 'bg-amber-100 text-amber-800 border border-amber-200'
-                        }`}
-                      >
+                    <td className="py-2.5 px-4 text-right font-bold font-mono">৳ {inv.amount?.toLocaleString()}</td>
+                    <td className="py-2.5 px-4 text-center">
+                      <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        inv.status === 'paid' ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'
+                      }`}>
                         {inv.status}
                       </span>
                     </td>
@@ -259,45 +207,31 @@ export function AdminPaymentManagement() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div className="bg-white rounded-md border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-100/75 text-slate-700 font-semibold border-b border-slate-200">
-                  <th className="py-3 px-4">Transaction ID</th>
-                  <th className="py-3 px-4">Student</th>
-                  <th className="py-3 px-4">Student ID</th>
-                  <th className="py-3 px-4">Gateway / Card</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4 text-right">Amount (BDT)</th>
-                  <th className="py-3 px-4 text-center">Status</th>
+            <table className="w-full text-left">
+              <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                <tr>
+                  <th className="py-2.5 px-4">Transaction ID</th>
+                  <th className="py-2.5 px-4">Student</th>
+                  <th className="py-2.5 px-4">Method</th>
+                  <th className="py-2.5 px-4">Date</th>
+                  <th className="py-2.5 px-4 text-right">Amount</th>
+                  <th className="py-2.5 px-4 text-center">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-slate-100">
                 {filteredPayments.map((p) => (
-                  <tr key={p._id} className="hover:bg-slate-50/75 transition-colors">
-                    <td className="py-3 px-4 font-mono font-medium text-slate-900">{p.transactionId}</td>
-                    <td className="py-3 px-4 font-medium text-[#16324F]">{p.studentName}</td>
-                    <td className="py-3 px-4 font-mono">{p.studentId}</td>
-                    <td className="py-3 px-4">{p.cardType || p.gateway || 'SSLCommerz'}</td>
-                    <td className="py-3 px-4 text-slate-600">
-                      {new Date(p.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                  <tr key={p._id} className="hover:bg-slate-50/70">
+                    <td className="py-2.5 px-4 font-mono font-medium">{p.transactionId}</td>
+                    <td className="py-2.5 px-4 font-medium text-slate-900">{p.studentName}</td>
+                    <td className="py-2.5 px-4 text-slate-600">{p.cardType || p.gateway || 'SSLCommerz'}</td>
+                    <td className="py-2.5 px-4 text-slate-500">
+                      {new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </td>
-                    <td className="py-3 px-4 text-right font-bold text-slate-900 font-mono">
-                      ৳ {p.amount?.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider ${
-                          p.status === 'success'
-                            ? 'bg-green-100 text-green-800 border border-green-200'
-                            : 'bg-red-100 text-red-800 border border-red-200'
-                        }`}
-                      >
+                    <td className="py-2.5 px-4 text-right font-bold font-mono">৳ {p.amount?.toLocaleString()}</td>
+                    <td className="py-2.5 px-4 text-center">
+                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800">
                         {p.status}
                       </span>
                     </td>
@@ -309,57 +243,37 @@ export function AdminPaymentManagement() {
         </div>
       )}
 
-      {/* Generate Invoice Modal */}
+      {/* New Invoice Modal */}
       {showAddInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
-            <h3 className="text-base font-bold text-[#16324F] mb-4">Issue Fee Invoice</h3>
-            {actionError && (
-              <div className="mb-4 text-xs text-red-700 bg-red-50 p-2.5 rounded border border-red-200">
-                {actionError}
-              </div>
-            )}
-            <form onSubmit={handleCreateInvoice} className="space-y-4 text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-md border border-slate-300 max-w-sm w-full p-6 text-xs text-slate-800">
+            <h3 className="text-base font-bold text-slate-900 mb-3">Issue Invoice</h3>
+            {actionError && <div className="p-2 mb-3 bg-rose-50 text-rose-700 rounded border border-rose-200">{actionError}</div>}
+            <form onSubmit={handleCreateInvoice} className="space-y-3">
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Student University ID</label>
+                <label className="block text-slate-700 font-semibold mb-1">Student ID</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. 220133"
                   value={newInvoiceData.studentId}
                   onChange={(e) => setNewInvoiceData({ ...newInvoiceData, studentId: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Fee Category</label>
-                <select
-                  value={newInvoiceData.category}
-                  onChange={(e) => setNewInvoiceData({ ...newInvoiceData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
-                >
-                  <option value="seat_allocation_fee">Seat Allocation Fee</option>
-                  <option value="monthly_hall_fee">Monthly Hall Fee</option>
-                  <option value="semester_hall_fee">Semester Hall Fee</option>
-                  <option value="hall_admission_fee">Hall Admission Fee</option>
-                  <option value="renewal_fee">Seat Renewal Fee</option>
-                  <option value="fine_or_damage">Fine or Facility Repair Charge</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Invoice Title / Description</label>
+                <label className="block text-slate-700 font-semibold mb-1">Title</label>
                 <input
                   type="text"
                   required
                   value={newInvoiceData.title}
                   onChange={(e) => setNewInvoiceData({ ...newInvoiceData, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded focus:outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-slate-700 font-semibold mb-1">Amount (BDT)</label>
                   <input
@@ -368,7 +282,7 @@ export function AdminPaymentManagement() {
                     required
                     value={newInvoiceData.amount}
                     onChange={(e) => setNewInvoiceData({ ...newInvoiceData, amount: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
+                    className="w-full px-2.5 py-1.5 border border-slate-300 rounded focus:outline-none"
                   />
                 </div>
                 <div>
@@ -378,25 +292,25 @@ export function AdminPaymentManagement() {
                     required
                     value={newInvoiceData.dueDate}
                     onChange={(e) => setNewInvoiceData({ ...newInvoiceData, dueDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#087E8B]"
+                    className="w-full px-2.5 py-1.5 border border-slate-300 rounded focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-slate-200">
+              <div className="flex justify-end gap-2 pt-2 border-t">
                 <button
                   type="button"
                   onClick={() => setShowAddInvoice(false)}
-                  className="px-4 py-2 rounded text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-4 py-2 rounded bg-[#087E8B] hover:bg-[#066570] text-white font-semibold cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1.5 bg-[#087E8B] hover:bg-[#066570] text-white rounded font-semibold cursor-pointer"
                 >
-                  {actionLoading ? 'Issuing...' : 'Issue Invoice'}
+                  Create
                 </button>
               </div>
             </form>

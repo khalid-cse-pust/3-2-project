@@ -7,11 +7,16 @@ const invoiceSchema = mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
+      uppercase: true,
     },
     student: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
     studentId: {
       type: String,
@@ -21,10 +26,12 @@ const invoiceSchema = mongoose.Schema(
     studentName: {
       type: String,
       required: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
+      trim: true,
     },
     category: {
       type: String,
@@ -41,6 +48,7 @@ const invoiceSchema = mongoose.Schema(
     title: {
       type: String,
       required: true,
+      trim: true,
     },
     description: {
       type: String,
@@ -72,6 +80,15 @@ const invoiceSchema = mongoose.Schema(
     },
     transactionId: {
       type: String,
+      trim: true,
+    },
+    payment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Payment',
+    },
+    isSandbox: {
+      type: Boolean,
+      default: true,
     },
     relatedApplication: {
       type: mongoose.Schema.Types.ObjectId,
@@ -86,6 +103,9 @@ const invoiceSchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
+invoiceSchema.index({ student: 1, status: 1 });
+invoiceSchema.index({ studentId: 1 });
 
 const Invoice = mongoose.model('Invoice', invoiceSchema);
 

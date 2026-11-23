@@ -20,7 +20,10 @@ export function ResidentialSearch() {
     setLoading(true);
     
     try {
-      const student = await api.get(`/users/search/${searchId.trim()}`);
+      const token = localStorage.getItem('hall_management_user')
+        ? JSON.parse(localStorage.getItem('hall_management_user')!).token
+        : '';
+      const student = await api.get(`/users/search/${searchId.trim()}`, token);
       setSearchResult(student);
     } catch (err) {
       console.error('Search failed:', err);

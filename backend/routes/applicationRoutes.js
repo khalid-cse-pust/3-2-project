@@ -5,9 +5,9 @@ const {
   getApplications,
   updateApplicationStatus,
 } = require('../controllers/applicationController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, staff } = require('../middleware/authMiddleware');
 
 router.route('/').post(protect, addApplication).get(protect, getApplications);
-router.route('/:id').put(protect, admin, updateApplicationStatus);
+router.route('/:id').put(protect, staff, updateApplicationStatus);
 
 module.exports = router;

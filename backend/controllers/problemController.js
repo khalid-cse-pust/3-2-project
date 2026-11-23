@@ -53,7 +53,11 @@ const getProblems = async (req, res) => {
         .populate('user', 'name email studentId department phone')
         .sort({ createdAt: -1 });
     } else {
-      problems = await Problem.find({ user: req.user._id }).sort({ createdAt: -1 });
+      const orClauses = [{ user: req.user._id }];
+      if (req.user.studentId) {
+        orClauses.push({ studentId: req.user.studentId });
+      }
+      problems = await Problem.find({ $or: orClauses }).sort({ createdAt: -1 });
     }
     res.json(problems);
   } catch (error) {
